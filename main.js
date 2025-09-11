@@ -4,7 +4,6 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 const ANIMATION_SPEED = {
-  cube: 0.01,
   text: 0.01,
   bounce: 0.02,
   sphere: 0.02,
@@ -12,18 +11,17 @@ const ANIMATION_SPEED = {
 };
 
 let speedMultiplier = 1;
-let bouncingEnabled = true;
+let bouncingEnabled = false; // Start with animations stopped
+let animationStartTime = 0; // Track when animation started
 
 const COLORS = {
-  cube: 0x00ff88,
   sphere: 0xff6b35,
   torus: 0x4ecdc4,
   text: 0xff3366,
-  background: 0x1a1a2e,
+  background: 0xfff0f5,
 };
 
 const COLOR_PALETTES = {
-  cube: [0x00ff88, 0xff6b35, 0x4ecdc4, 0xff3366, 0xf9ca24, 0x6c5ce7],
   text: [0xff3366, 0x00ff88, 0x4ecdc4, 0xff6b35, 0xa29bfe, 0xfd79a8],
 };
 
@@ -66,8 +64,8 @@ scene.background = new THREE.Color(COLORS.background);
 document.body.appendChild(renderer.domElement);
 
 function createLights() {
-  // Ambient light for overall illumination
-  const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+  // Ambient light for overall illumination with warm romantic tint
+  const ambientLight = new THREE.AmbientLight(0xffd1dc, 0.5); // Soft pink ambient light
   scene.add(ambientLight);
 
   // Directional light with shadows
@@ -78,30 +76,14 @@ function createLights() {
   directionalLight.shadow.mapSize.height = 2048;
   scene.add(directionalLight);
 
-  // Point light for dramatic effect
   const pointLight = new THREE.PointLight(0xff6b35, 0.8, 50);
   pointLight.position.set(-5, 3, 0);
   scene.add(pointLight);
   return { directionalLight, pointLight };
 }
 
-function createCube() {
-  const geometry = new THREE.BoxGeometry(1, 1, 1);
-  const material = new THREE.MeshPhongMaterial({
-    color: COLORS.cube,
-    shininess: 100,
-    specular: 0x222222,
-  });
-  const cube = new THREE.Mesh(geometry, material);
-  cube.castShadow = true;
-  cube.receiveShadow = true;
-  cube.position.set(0, 1, 0);
-  scene.add(cube);
-  return cube;
-}
-
 function createSphere() {
-  const geometry = new THREE.SphereGeometry(0.8, 32, 32);
+  const geometry = new THREE.SphereGeometry(0.4, 32, 32);
   const material = new THREE.MeshPhongMaterial({
     color: COLORS.sphere,
     shininess: 150,
@@ -109,13 +91,13 @@ function createSphere() {
   const sphere = new THREE.Mesh(geometry, material);
   sphere.castShadow = true;
   sphere.receiveShadow = true;
-  sphere.position.set(3, 1, -2);
+  sphere.position.set(-3, 1, -1);
   scene.add(sphere);
   return sphere;
 }
 
 function createTorus() {
-  const geometry = new THREE.TorusGeometry(0.7, 0.2, 16, 100);
+  const geometry = new THREE.TorusGeometry(0.7, 0.1, 16, 100);
   const material = new THREE.MeshPhongMaterial({
     color: COLORS.torus,
     shininess: 80,
@@ -131,7 +113,7 @@ function createTorus() {
 function createGround() {
   const geometry = new THREE.PlaneGeometry(20, 20);
   const material = new THREE.MeshPhongMaterial({
-    color: 0x333333,
+    color: 0xffe4e1,
     side: THREE.DoubleSide,
   });
   const ground = new THREE.Mesh(geometry, material);
@@ -142,66 +124,51 @@ function createGround() {
   return ground;
 }
 
-function createFloatingCubes() {
-  const cubes = [];
-  for (let i = 0; i < 8; i++) {
-    const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+function createFloatingHearts() {
+  const hearts = [];
+  for (let i = 0; i < 20; i++) {
+    const shape = new THREE.Shape();
+    const x = -2.5;
+    const y = -5;
+    shape.moveTo(x + 2.5, y + 2.5);
+    shape.bezierCurveTo(x + 2.5, y + 2.5, x + 2, y, x, y);
+    shape.bezierCurveTo(x - 3, y, x - 3, y + 3.5, x - 3, y + 3.5);
+    shape.bezierCurveTo(x - 3, y + 5.5, x - 1.5, y + 7.7, x + 2.5, y + 9.5);
+    shape.bezierCurveTo(x + 6, y + 7.7, x + 8, y + 4.5, x + 8, y + 3.5);
+    shape.bezierCurveTo(x + 8, y + 3.5, x + 8, y, x + 5, y);
+    shape.bezierCurveTo(x + 3.5, y, x + 2.5, y + 2.5, x + 2.5, y + 2.5);
+
+    const extrudeSettings = {
+      steps: 2,
+      depth: 1,
+      bevelEnabled: true,
+      bevelThickness: 0.5,
+      bevelSize: 0.5,
+      bevelSegments: 2,
+    };
+
+    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
     const material = new THREE.MeshPhongMaterial({
       color: Math.random() * 0xffffff,
+      shininess: 100,
     });
-    const cube = new THREE.Mesh(geometry, material);
+    const heart = new THREE.Mesh(geometry, material);
 
-    cube.position.set(
+    heart.position.set(
       (Math.random() - 0.5) * 10,
-      Math.random() * 4 + 2,
+      Math.random() * 6 + 1,
       (Math.random() - 0.5) * 10
     );
 
-    cube.castShadow = true;
-    scene.add(cube);
-    cubes.push(cube);
+    const randomScale = 0.025 + Math.random() * 0.015;
+    heart.scale.set(randomScale, randomScale, randomScale);
+    heart.rotation.x = Math.PI;
+
+    heart.castShadow = true;
+    scene.add(heart);
+    hearts.push(heart);
   }
-  return cubes;
-}
-
-function createHeart() {
-  const shape = new THREE.Shape();
-  const x = -2.5;
-  const y = -5;
-  shape.moveTo(x + 2.5, y + 2.5);
-  shape.bezierCurveTo(x + 2.5, y + 2.5, x + 2, y, x, y);
-  shape.bezierCurveTo(x - 3, y, x - 3, y + 3.5, x - 3, y + 3.5);
-  shape.bezierCurveTo(x - 3, y + 5.5, x - 1.5, y + 7.7, x + 2.5, y + 9.5);
-  shape.bezierCurveTo(x + 6, y + 7.7, x + 8, y + 4.5, x + 8, y + 3.5);
-  shape.bezierCurveTo(x + 8, y + 3.5, x + 8, y, x + 5, y);
-  shape.bezierCurveTo(x + 3.5, y, x + 2.5, y + 2.5, x + 2.5, y + 2.5);
-
-  const extrudeSettings = {
-    steps: 2,
-    depth: 2,
-    bevelEnabled: true,
-    bevelThickness: 1,
-    bevelSize: 1,
-    bevelSegments: 2,
-  };
-
-  const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-  const material = new THREE.MeshPhongMaterial({
-    color: 0xff1744,
-    shininess: 100,
-  });
-
-  const heart = new THREE.Mesh(geometry, material);
-  heart.castShadow = true;
-  heart.receiveShadow = true;
-
-  // Scale and position the heart
-  heart.scale.set(0.1, 0.1, 0.1);
-  heart.position.set(-5, 3, 2);
-  heart.rotation.x = Math.PI;
-
-  scene.add(heart);
-  return heart;
+  return hearts;
 }
 
 function createText() {
@@ -209,7 +176,7 @@ function createText() {
   loader.load(
     "https://threejs.org/examples/fonts/helvetiker_regular.typeface.json",
     (font) => {
-      const textGeometry = new TextGeometry("Hello", {
+      const textGeometry = new TextGeometry("Hello World !", {
         font: font,
         size: 1,
         depth: 0.2,
@@ -235,6 +202,12 @@ function createText() {
       textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
       textMesh.position.set(centerOffsetX, centerOffsetY + 3, -2);
+
+      initialTextPosition = {
+        x: centerOffsetX,
+        y: centerOffsetY + 3,
+        z: -2,
+      };
       textMesh.castShadow = true;
       scene.add(textMesh);
     }
@@ -247,52 +220,185 @@ function setupControls() {
   return controls;
 }
 
-// ===== INITIALIZE OBJECTS =====
+// Create rain effect with heart shapes
+function createRain() {
+  const rainCount = 100;
+  const rainHearts = [];
+
+  // Create heart shape geometry (reusable)
+  const heartShape = new THREE.Shape();
+  const x = -1,
+    y = -1;
+  heartShape.moveTo(x + 1, y + 1);
+  heartShape.bezierCurveTo(x + 1, y + 1, x + 0.8, y + 0.4, x + 0.4, y + 0.4);
+  heartShape.bezierCurveTo(
+    x + 0.1,
+    y + 0.4,
+    x + 0.1,
+    y + 0.7,
+    x + 0.1,
+    y + 0.7
+  );
+  heartShape.bezierCurveTo(x + 0.1, y + 0.9, x + 0.3, y + 1.1, x + 1, y + 1.4);
+  heartShape.bezierCurveTo(
+    x + 1.7,
+    y + 1.1,
+    x + 1.9,
+    y + 0.9,
+    x + 1.9,
+    y + 0.7
+  );
+  heartShape.bezierCurveTo(
+    x + 1.9,
+    y + 0.7,
+    x + 1.9,
+    y + 0.4,
+    x + 1.6,
+    y + 0.4
+  );
+  heartShape.bezierCurveTo(x + 1.2, y + 0.4, x + 1, y + 1, x + 1, y + 1);
+
+  const extrudeSettings = {
+    steps: 1,
+    depth: 0.1,
+    bevelEnabled: false,
+  };
+
+  const heartGeometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+
+  for (let i = 0; i < rainCount; i++) {
+    const colors = [
+      0xff69b4, 0xff1493, 0xffc0cb, 0xff6347, 0xff4500, 0xffd700, 0x87ceeb,
+    ];
+    const material = new THREE.MeshPhongMaterial({
+      color: colors[Math.floor(Math.random() * colors.length)],
+      transparent: true,
+      opacity: 0.8,
+      shininess: 100,
+    });
+
+    const heart = new THREE.Mesh(heartGeometry, material);
+
+    // Random position above the scene
+    heart.position.set(
+      (Math.random() - 0.5) * 20,
+      Math.random() * 15 + 5,
+      (Math.random() - 0.5) * 20
+    );
+
+    heart.scale.set(0.12, 0.12, 0.12);
+    heart.rotation.x = Math.PI;
+    heart.castShadow = true;
+
+    heart.userData = {
+      velocityX: (Math.random() - 0.5) * 0.005,
+      velocityY: -0.04 - Math.random() * 0.02,
+      velocityZ: (Math.random() - 0.5) * 0.005,
+      rotationSpeed: Math.random() * 0.01,
+    };
+
+    scene.add(heart);
+    rainHearts.push(heart);
+  }
+
+  return { rainHearts };
+}
+
 const lights = createLights();
-const cube = createCube();
 const sphere = createSphere();
 const torus = createTorus();
 const ground = createGround();
-const floatingCubes = createFloatingCubes();
-const heart = createHeart();
+const floatingHearts = createFloatingHearts();
 let textMesh = null;
+let initialTextPosition = { x: 0, y: 5, z: -2 };
 const controls = setupControls();
-
+let rainSystem = createRain();
 createText();
 
 function animate() {
   const time = Date.now() * 0.001;
 
-  cube.rotation.x += ANIMATION_SPEED.cube * speedMultiplier;
-  cube.rotation.y += ANIMATION_SPEED.cube * speedMultiplier;
+  if (bouncingEnabled) {
+    const torusBaseY = 1 + Math.cos(time * 1.5 * speedMultiplier) * 0.2;
 
-  sphere.rotation.y += ANIMATION_SPEED.sphere * speedMultiplier;
-  sphere.position.y = 1 + Math.sin(time * 2 * speedMultiplier) * 0.3;
+    sphere.rotation.y += ANIMATION_SPEED.sphere * speedMultiplier;
+    sphere.position.y = 1;
 
-  torus.rotation.x += ANIMATION_SPEED.torus * speedMultiplier;
-  torus.rotation.y += ANIMATION_SPEED.torus * 2 * speedMultiplier;
-  torus.position.y = 1 + Math.cos(time * 1.5 * speedMultiplier) * 0.2;
+    if (Math.random() < 0.01) {
+      const colors = [
+        0xff6b35, 0xff1493, 0x00ff88, 0x4ecdc4, 0xf9ca24, 0xff3366, 0x6c5ce7,
+        0xfd79a8, 0xa29bfe,
+      ];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      sphere.material.color.setHex(randomColor);
+    }
 
-  floatingCubes.forEach((cube, index) => {
-    cube.rotation.x += 0.01 * (index + 1) * speedMultiplier;
-    cube.rotation.y += 0.008 * (index + 1) * speedMultiplier;
-    cube.position.y += Math.sin(time * 2 + index) * 0.002 * speedMultiplier;
-  });
+    torus.rotation.x += ANIMATION_SPEED.torus * speedMultiplier;
+    torus.rotation.y += ANIMATION_SPEED.torus * 2 * speedMultiplier;
+    torus.position.y = torusBaseY;
 
-  lights.pointLight.position.x = Math.sin(time * speedMultiplier) * 5;
-  lights.pointLight.position.z = Math.cos(time * speedMultiplier) * 5;
+    sphere.position.x =
+      torus.position.x + Math.sin(time * 1.8 * speedMultiplier) * 0.1;
+    sphere.position.z =
+      torus.position.z + Math.cos(time * 1.8 * speedMultiplier) * 0.1;
 
-  heart.rotation.y += 0.01 * speedMultiplier;
-  heart.scale.setScalar(0.1 + Math.sin(time * 4 * speedMultiplier) * 0.02); // Pulsing effect
-  heart.position.y = 3 + Math.sin(time * 1.5 * speedMultiplier) * 0.5;
+    floatingHearts.forEach((heart, index) => {
+      heart.rotation.x += 0.01 * (index + 1) * speedMultiplier;
+      heart.rotation.y += 0.008 * (index + 1) * speedMultiplier;
+      heart.position.y += Math.sin(time * 2 + index) * 0.002 * speedMultiplier;
+    });
+
+    lights.pointLight.position.x = Math.sin(time * speedMultiplier) * 5;
+    lights.pointLight.position.z = Math.cos(time * speedMultiplier) * 5;
+  }
 
   if (textMesh) {
-    textMesh.rotation.y += ANIMATION_SPEED.text * speedMultiplier;
     if (bouncingEnabled) {
+      const animTime = time - animationStartTime;
+
+      textMesh.rotation.y += ANIMATION_SPEED.text * speedMultiplier;
+      textMesh.rotation.x = Math.sin(animTime * 1.2 * speedMultiplier) * 0.3; // Gentle X rotation
+      textMesh.rotation.z = Math.cos(animTime * 0.8 * speedMultiplier) * 0.2; // Gentle Z rotation
+
+      // Figure-8 motion starting from initial text position
+      textMesh.position.x =
+        initialTextPosition.x + Math.sin(animTime * 0.5 * speedMultiplier) * 2;
       textMesh.position.y =
-        Math.sin(time * ANIMATION_SPEED.bounce * 100 * speedMultiplier) * 0.8 +
-        5;
+        initialTextPosition.y + Math.sin(animTime * speedMultiplier) * 0.8;
+      textMesh.position.z =
+        initialTextPosition.z + Math.sin(animTime * speedMultiplier * 2) * 0.5;
+
+      // Pulsing scale effect
+      const pulseScale = 1 + Math.sin(animTime * 3 * speedMultiplier) * 0.1;
+      textMesh.scale.setScalar(pulseScale);
     }
+    // When animation is stopped, text stays frozen in current position/rotation/scale
+    // No resetting - it maintains whatever state it was in when stopped
+  }
+
+  // Animate rain hearts
+  if (rainEnabled) {
+    const { rainHearts } = rainSystem;
+
+    rainHearts.forEach((heart) => {
+      heart.position.x += heart.userData.velocityX;
+      heart.position.y += heart.userData.velocityY;
+      heart.position.z += heart.userData.velocityZ;
+
+      heart.rotation.y += heart.userData.rotationSpeed;
+      heart.rotation.z += heart.userData.rotationSpeed * 0.5;
+
+      if (heart.position.y < -1) {
+        heart.position.set(
+          (Math.random() - 0.5) * 20,
+          Math.random() * 15 + 5,
+          (Math.random() - 0.5) * 20
+        );
+        // Reset rotation
+        heart.rotation.y = 0;
+        heart.rotation.z = 0;
+      }
+    });
   }
 
   controls.update();
@@ -309,15 +415,7 @@ window.addEventListener("resize", handleResize);
 renderer.setAnimationLoop(animate);
 
 function setupButtons() {
-  let currentCubeColorIndex = 0;
   let currentTextColorIndex = 0;
-
-  document.getElementById("changeColor").addEventListener("click", () => {
-    currentCubeColorIndex =
-      (currentCubeColorIndex + 1) % COLOR_PALETTES.cube.length;
-    const newColor = COLOR_PALETTES.cube[currentCubeColorIndex];
-    cube.material.color.setHex(newColor);
-  });
 
   document.getElementById("toggleSpeed").addEventListener("click", () => {
     speedMultiplier =
@@ -342,33 +440,82 @@ function setupButtons() {
 
   document.getElementById("toggleBounce").addEventListener("click", () => {
     bouncingEnabled = !bouncingEnabled;
-    document.getElementById("toggleBounce").textContent = bouncingEnabled
-      ? "Disable Bounce"
-      : "Enable Bounce";
 
-    // If bouncing is disabled, fix text position
-    if (!bouncingEnabled && textMesh) {
-      textMesh.position.y = 5;
+    // Record the time when animation starts
+    if (bouncingEnabled) {
+      animationStartTime = Date.now() * 0.001;
     }
+
+    document.getElementById("toggleBounce").textContent = bouncingEnabled
+      ? "Stop Animation"
+      : "Start Animation";
+
+    // Note: When stopping animation, objects will freeze in their current positions
+    // No resetting to default positions anymore
   });
 
   document.getElementById("resetScene").addEventListener("click", () => {
-    // Reset colors
-    cube.material.color.setHex(COLORS.cube);
+    // Reset text color and position to default state
     if (textMesh) {
       textMesh.material.color.setHex(COLORS.text);
+      // Reset text to its actual initial position (centered)
+      textMesh.position.set(
+        initialTextPosition.x,
+        initialTextPosition.y,
+        initialTextPosition.z
+      );
+      textMesh.scale.setScalar(1);
+      textMesh.rotation.x = 0;
+      textMesh.rotation.y = 0;
+      textMesh.rotation.z = 0;
     }
 
-    speedMultiplier = 1;
-    bouncingEnabled = true;
+    // Reset sphere and torus to default positions
+    sphere.position.set(-3, 1, -1);
+    torus.position.set(-3, 1, -1);
+    sphere.rotation.y = 0;
+    torus.rotation.x = 0;
+    torus.rotation.y = 0;
 
+    // Reset floating hearts to their initial states
+    floatingHearts.forEach((heart, index) => {
+      heart.rotation.x = Math.PI; // Keep them upside down as created
+      heart.rotation.y = 0;
+    });
+
+    speedMultiplier = 1;
+    bouncingEnabled = false; // Reset to initial state (animations stopped)
+
+    // Reset UI buttons
     document.getElementById("toggleSpeed").textContent =
       "Toggle Animation Speed";
-    document.getElementById("toggleBounce").textContent = "Toggle Text Bounce";
+    document.getElementById("toggleBounce").textContent = "Start Animation";
 
-    currentCubeColorIndex = 0;
     currentTextColorIndex = 0;
   });
 }
 
 setupButtons();
+
+// Add rain toggle button
+const rainBtn = document.createElement("button");
+rainBtn.id = "toggleRain";
+rainBtn.textContent = "Toggle Rain";
+rainBtn.style.position = "fixed";
+rainBtn.style.top = "70px";
+rainBtn.style.right = "20px";
+rainBtn.style.zIndex = "10";
+rainBtn.style.padding = "10px 20px";
+rainBtn.style.fontSize = "16px";
+document.body.appendChild(rainBtn);
+
+let rainEnabled = true;
+
+rainBtn.addEventListener("click", () => {
+  rainEnabled = !rainEnabled;
+  rainSystem.rainHearts.forEach((heart) => {
+    heart.visible = rainEnabled;
+  });
+  rainBtn.textContent = rainEnabled ? "Stop Heart Rain" : "Start Heart Rain";
+  console.log(rainEnabled ? "Heart rain started!" : "Heart rain stopped!");
+});
