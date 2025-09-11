@@ -500,7 +500,7 @@ setupButtons();
 // Add rain toggle button
 const rainBtn = document.createElement("button");
 rainBtn.id = "toggleRain";
-rainBtn.textContent = "Toggle Rain";
+rainBtn.textContent = "Toggle Heart Rain";
 rainBtn.style.position = "fixed";
 rainBtn.style.top = "70px";
 rainBtn.style.right = "20px";
