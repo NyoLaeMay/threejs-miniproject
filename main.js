@@ -11,8 +11,8 @@ const ANIMATION_SPEED = {
 };
 
 let speedMultiplier = 1;
-let bouncingEnabled = false; // Start with animations stopped
-let animationStartTime = 0; // Track when animation started
+let bouncingEnabled = false;
+let animationStartTime = 0;
 
 const COLORS = {
   sphere: 0xff6b35,
@@ -64,11 +64,9 @@ scene.background = new THREE.Color(COLORS.background);
 document.body.appendChild(renderer.domElement);
 
 function createLights() {
-  // Ambient light for overall illumination with warm romantic tint
-  const ambientLight = new THREE.AmbientLight(0xffd1dc, 0.5); // Soft pink ambient light
+  const ambientLight = new THREE.AmbientLight(0xffd1dc, 0.5);
   scene.add(ambientLight);
 
-  // Directional light with shadows
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
   directionalLight.position.set(5, 10, 5);
   directionalLight.castShadow = true;
@@ -220,12 +218,10 @@ function setupControls() {
   return controls;
 }
 
-// Create rain effect with heart shapes
 function createRain() {
   const rainCount = 100;
   const rainHearts = [];
 
-  // Create heart shape geometry (reusable)
   const heartShape = new THREE.Shape();
   const x = -1,
     y = -1;
@@ -279,7 +275,6 @@ function createRain() {
 
     const heart = new THREE.Mesh(heartGeometry, material);
 
-    // Random position above the scene
     heart.position.set(
       (Math.random() - 0.5) * 20,
       Math.random() * 15 + 5,
@@ -357,10 +352,9 @@ function animate() {
       const animTime = time - animationStartTime;
 
       textMesh.rotation.y += ANIMATION_SPEED.text * speedMultiplier;
-      textMesh.rotation.x = Math.sin(animTime * 1.2 * speedMultiplier) * 0.3; // Gentle X rotation
-      textMesh.rotation.z = Math.cos(animTime * 0.8 * speedMultiplier) * 0.2; // Gentle Z rotation
+      textMesh.rotation.x = Math.sin(animTime * 1.2 * speedMultiplier) * 0.3;
+      textMesh.rotation.z = Math.cos(animTime * 0.8 * speedMultiplier) * 0.2;
 
-      // Figure-8 motion starting from initial text position
       textMesh.position.x =
         initialTextPosition.x + Math.sin(animTime * 0.5 * speedMultiplier) * 2;
       textMesh.position.y =
@@ -368,15 +362,11 @@ function animate() {
       textMesh.position.z =
         initialTextPosition.z + Math.sin(animTime * speedMultiplier * 2) * 0.5;
 
-      // Pulsing scale effect
       const pulseScale = 1 + Math.sin(animTime * 3 * speedMultiplier) * 0.1;
       textMesh.scale.setScalar(pulseScale);
     }
-    // When animation is stopped, text stays frozen in current position/rotation/scale
-    // No resetting - it maintains whatever state it was in when stopped
   }
 
-  // Animate rain hearts
   if (rainEnabled) {
     const { rainHearts } = rainSystem;
 
@@ -394,7 +384,6 @@ function animate() {
           Math.random() * 15 + 5,
           (Math.random() - 0.5) * 20
         );
-        // Reset rotation
         heart.rotation.y = 0;
         heart.rotation.z = 0;
       }
@@ -441,7 +430,6 @@ function setupButtons() {
   document.getElementById("toggleBounce").addEventListener("click", () => {
     bouncingEnabled = !bouncingEnabled;
 
-    // Record the time when animation starts
     if (bouncingEnabled) {
       animationStartTime = Date.now() * 0.001;
     }
@@ -449,16 +437,11 @@ function setupButtons() {
     document.getElementById("toggleBounce").textContent = bouncingEnabled
       ? "Stop Animation"
       : "Start Animation";
-
-    // Note: When stopping animation, objects will freeze in their current positions
-    // No resetting to default positions anymore
   });
 
   document.getElementById("resetScene").addEventListener("click", () => {
-    // Reset text color and position to default state
     if (textMesh) {
       textMesh.material.color.setHex(COLORS.text);
-      // Reset text to its actual initial position (centered)
       textMesh.position.set(
         initialTextPosition.x,
         initialTextPosition.y,
@@ -470,23 +453,20 @@ function setupButtons() {
       textMesh.rotation.z = 0;
     }
 
-    // Reset sphere and torus to default positions
     sphere.position.set(-3, 1, -1);
     torus.position.set(-3, 1, -1);
     sphere.rotation.y = 0;
     torus.rotation.x = 0;
     torus.rotation.y = 0;
 
-    // Reset floating hearts to their initial states
     floatingHearts.forEach((heart, index) => {
-      heart.rotation.x = Math.PI; // Keep them upside down as created
+      heart.rotation.x = Math.PI;
       heart.rotation.y = 0;
     });
 
     speedMultiplier = 1;
-    bouncingEnabled = false; // Reset to initial state (animations stopped)
+    bouncingEnabled = false;
 
-    // Reset UI buttons
     document.getElementById("toggleSpeed").textContent =
       "Toggle Animation Speed";
     document.getElementById("toggleBounce").textContent = "Start Animation";
@@ -497,7 +477,6 @@ function setupButtons() {
 
 setupButtons();
 
-// Add rain toggle button
 const rainBtn = document.createElement("button");
 rainBtn.id = "toggleRain";
 rainBtn.textContent = "Toggle Heart Rain";
