@@ -13,7 +13,7 @@ A romantic and interactive 3D scene built with Three.js featuring heart-shaped o
    cd threejs-miniproject
    ```
 
-2. **Option A: Using a local server (Recommended)**
+2. **Start a local server:**
 
    ```bash
    # Using npx (no installation required)
@@ -26,6 +26,8 @@ A romantic and interactive 3D scene built with Three.js featuring heart-shaped o
    npm install -g http-server
    http-server
    ```
+
+3. **Open your browser** and navigate to the provided local server URL (usually `http://localhost:3000` or similar)
 
 ## ✨ Features Implemented
 
