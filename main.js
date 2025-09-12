@@ -311,11 +311,25 @@ function createRain() {
   return { rainHearts };
 }
 
+function createBasicCylinder() {
+  const geometry = new THREE.CylinderGeometry(0.1, 0.5, 2, 32);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x8b4513,
+    wireframe: false,
+  });
+  const cylinder = new THREE.Mesh(geometry, material);
+
+  cylinder.position.set(3, 0, 0);
+  scene.add(cylinder);
+  return cylinder;
+}
+
 const lights = createLights();
 const sphere = createSphere();
 const torus = createTorus();
 const ground = createGround();
 const floatingHearts = createFloatingHearts();
+const basicCylinder = createBasicCylinder();
 let textMesh = null;
 let initialTextPosition = { x: 0, y: 5, z: -2 };
 const controls = setupControls();
@@ -354,6 +368,10 @@ function animate() {
       heart.rotation.y += 0.008 * (index + 1) * speedMultiplier;
       heart.position.y += Math.sin(time * 2 + index) * 0.002 * speedMultiplier;
     });
+
+    // Animate the cone
+    basicCylinder.rotation.y += 0.02 * speedMultiplier;
+    basicCylinder.position.y = Math.sin(time * 3 * speedMultiplier) * 0.3;
 
     lights.pointLight.position.x = Math.sin(time * speedMultiplier) * 5;
     lights.pointLight.position.z = Math.cos(time * speedMultiplier) * 5;

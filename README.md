@@ -35,6 +35,7 @@ A romantic and interactive 3D scene built with Three.js featuring heart-shaped o
 
 - **Heart-shaped Floating Objects**: 20 randomly colored 3D heart shapes
 - **Geometric Shapes**: Interactive sphere and torus with metallic materials
+- **Ice Cream Cone**: Brown cone with bounce and spin animations using MeshBasicMaterial
 - **Dynamic Text**: "Hello World!" text with 3D extrusion and beveling
 - **Heart Rain Effect**: 100 animated falling heart particles
 - **Realistic Lighting**: Ambient, directional, and point lights with soft shadows
@@ -55,7 +56,8 @@ A romantic and interactive 3D scene built with Three.js featuring heart-shaped o
 • **Bézier curves for custom heart shapes** - math was challenging but creates beautiful 3D geometry  
 • **Time-based animation prevents speed issues** - frame-based animations run differently on each device  
 • **Math.sin() and Math.cos() create natural motion** - perfect for bouncing, floating, and circular movements  
-• **Interactive UI controls need state management** - syncing buttons with 3D animations is complex
+• **Interactive UI controls need state management** - syncing buttons with 3D animations is complex  
+• **MeshBasicMaterial vs MeshPhongMaterial difference** - basic materials ignore lighting, phong materials respond to lights
 
 ## 🌐 Live Demo
 
