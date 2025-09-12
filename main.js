@@ -58,7 +58,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-// Set background color
 scene.background = new THREE.Color(COLORS.background);
 
 document.body.appendChild(renderer.domElement);
@@ -68,11 +67,24 @@ function createLights() {
   scene.add(ambientLight);
 
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(5, 10, 5);
+  directionalLight.position.set(0, 20, 0);
   directionalLight.castShadow = true;
-  directionalLight.shadow.mapSize.width = 2048;
-  directionalLight.shadow.mapSize.height = 2048;
+  directionalLight.shadow.mapSize.width = 4096;
+  directionalLight.shadow.mapSize.height = 4096;
+
+  directionalLight.shadow.camera.left = -30;
+  directionalLight.shadow.camera.right = 30;
+  directionalLight.shadow.camera.top = 30;
+  directionalLight.shadow.camera.bottom = -30;
+  directionalLight.shadow.camera.near = 0.1;
+  directionalLight.shadow.camera.far = 100;
+  directionalLight.shadow.camera.updateProjectionMatrix();
+
   scene.add(directionalLight);
+
+  const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+  directionalLight2.position.set(-10, 15, 10);
+  scene.add(directionalLight2);
 
   const pointLight = new THREE.PointLight(0xff6b35, 0.8, 50);
   pointLight.position.set(-5, 3, 0);
