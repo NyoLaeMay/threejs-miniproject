@@ -57,7 +57,7 @@ A romantic and interactive 3D scene built with Three.js featuring heart-shaped o
 
 ## 🌐 Live Demo
 
-Visit the live demo: [Your Deployment URL Here]
+Visit the live demo: (https://threejs-miniproject.vercel.app)
 
 ## 📸 Screenshots
 
